@@ -12,10 +12,10 @@ library(ggplot2)
 library(ggmap)
 library(RgoogleMaps)
 library(leaflet)
-load("~/Desktop/Data Visualization/Assignments/providerspokane.RDA")
+load("~/Desktop/Data Visualization/HCM/HCM/providerspokane.RDA")
 ```
 
-####Create a static map that indicates the location of the three types of providers, and color them based on the provider type.
+### 1.Create a static map that indicates the location of the three types of providers, and color them based on the provider type.
 
 
 ```{r}
@@ -58,7 +58,9 @@ spomedmap=spomedmap+geom_point(data=ProviderLocation,aes(longitude,latitude,colo
 print(spomedmap)
 ```
 
-#### Final static Spokane Provider map
+
+### Final static Spokane Provider map
+
 ```{r}
 spomedmap+theme(panel.grid.major = element_blank(),
                  panel.grid.minor = element_blank(),
@@ -81,7 +83,7 @@ Gender = paste('Gender: ', ProviderLocation$Gender.of.the.Provider)
 Info = paste(Name,Address,Gender)
 ```
 
-####Final Interactive Spokane Provider Map with info
+### Final Interactive Spokane Provider Map with info
 
 ```{r}
 leaflet() %>% addTiles()%>%addMarkers(data=ProviderLocation,popup=~Info)
