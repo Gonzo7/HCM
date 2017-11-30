@@ -1,0 +1,88 @@
+---
+title: "Spokane Healthcare Provider Locations"
+author: "Gonzalo Del Carpio & Daniel Bies"
+date: "11/23/2017"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggmap)
+library(RgoogleMaps)
+library(leaflet)
+load("~/Desktop/Data Visualization/Assignments/providerspokane.RDA")
+```
+
+####Create a static map that indicates the location of the three types of providers, and color them based on the provider type.
+
+
+```{r}
+filterspokane= providerspokane %>%
+ filter(Provider.Type == "Gastroenterology" | Provider.Type == "Internal Medicine" | Provider.Type == "Nephrology")
+filterspo <- filterspokane[-c(1:8),-c(1,4:5,7,15:26)]
+filterspo$address=paste(filterspo$Street.Address.1.of.the.Provider, filterspo$City.of.the.Provider, filterspo$Zip.Code.of.the.Provider,sep = ",")
+```
+
+
+```{r}
+suppressMessages(library(ggmap))
+whatislatlon=function(mydata,addressindata)
+  {locs=geocode(as.character(unique(mydata[,addressindata])))
+    locs$address=unique(mydata[,addressindata])
+    mydata$latitude=locs$lat[ match(mydata[,addressindata],locs$address)]
+    mydata$longitude=locs$lon[ match(mydata[,addressindata],locs$address)]
+    return(mydata)
+}
+```
+
+```{r}
+ProviderLocation=whatislatlon(filterspo, "address")
+View(ProviderLocation)
+ProviderLocation$locate <- paste(ProviderLocation$longitude, ProviderLocation$latitude, sep=",")
+View(ProviderLocation)
+```
+
+
+```{r}
+location=c(-117.402209,47.665330)
+map=get_map(location=location,maptype="roadmap",source="google",zoom=11)
+spomedmap=ggmap(map)
+print(spomedmap)
+```
+
+
+```{r}
+spomedmap=spomedmap+geom_point(data=ProviderLocation,aes(longitude,latitude,color= Provider.Type),size=5)
+print(spomedmap)
+```
+
+
+```{r}
+spomedmap+theme(panel.grid.major = element_blank(),
+                 panel.grid.minor = element_blank(),
+                axis.text = element_blank(),axis.title = element_blank(),
+                axis.ticks = element_blank())
+```
+
+### 2.Create an interactive map that does the same as the static map in point 2, above. In addition, this map should cluster the points using the addMarkerCluster option and also provide information, when a point is clicked, on the complete name, complete address, and gender of the provider.
+
+```{r}
+library(leaflet)
+leaflet() %>% addTiles()
+leaflet() %>% addTiles()%>%addCircleMarkers(data=ProviderLocation)
+```
+
+```{r}
+Name = paste('Full Name: ',ProviderLocation$First.Name.of.the.Provider, ProviderLocation$Last.Name.Organization.Name.of.the.Provider)
+Address = paste('Address: ',ProviderLocation$address)
+Gender = paste('Gender: ', ProviderLocation$Gender.of.the.Provider)
+Info = paste(Name,Address,Gender)
+```
+
+
+```{r}
+leaflet() %>% addTiles()%>%addMarkers(data=ProviderLocation,popup=~Info)
+```
+
